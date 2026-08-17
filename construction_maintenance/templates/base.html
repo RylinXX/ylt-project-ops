@@ -50,14 +50,14 @@
               <span class="nav-label">账套管理中心</span>
             </div>
             <div class="nav-submenu" style="display: {% if is_financial_active %}flex{% else %}none{% endif %};">
-              <a href="{{ url_for('web.ledger_pending') }}" class="nav-subitem {% if request.endpoint in ['web.ledger_pending', 'web.complete_ledger_pending', 'web.ignore_ledger_pending'] %}active{% endif %}">
-                <span class="nav-subdot"></span> 待补录费用
+              <a href="{{ url_for('web.vouchers') }}" class="nav-subitem {% if request.endpoint in ['web.vouchers', 'web.edit_voucher', 'web.void_voucher'] %}active{% endif %}">
+                <span class="nav-subdot"></span> 全盘明细
               </a>
               <a href="{{ url_for('web.expense_categories') }}" class="nav-subitem {% if request.endpoint in ['web.expense_categories', 'web.edit_expense_category', 'web.migrate_expense_category'] %}active{% endif %}">
                 <span class="nav-subdot"></span> 费用定义
               </a>
-              <a href="{{ url_for('web.vouchers') }}" class="nav-subitem {% if request.endpoint in ['web.vouchers', 'web.edit_voucher', 'web.void_voucher'] %}active{% endif %}">
-                <span class="nav-subdot"></span> 全盘明细
+              <a href="{{ url_for('web.ledger_pending') }}" class="nav-subitem {% if request.endpoint in ['web.ledger_pending', 'web.complete_ledger_pending', 'web.ignore_ledger_pending'] %}active{% endif %}">
+                <span class="nav-subdot"></span> 待补录费用
               </a>
             </div>
           </div>
