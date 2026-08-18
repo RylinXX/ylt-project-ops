@@ -48,12 +48,16 @@ def build_dashboard() -> dict:
     by_type: dict[str, float] = defaultdict(float)
     by_primary_type: dict[str, float] = defaultdict(float)
     
-    # Structure: by_project_categories[project_name][category_name] = amount
+    # Structure: by_project_categories[project_name][category_name] = amount (Primary)
+    # Structure: by_project_secondary[project_name][category_name] = amount (Secondary)
     by_project_categories: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    by_project_secondary: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
     
     months_set = set()
     categories_set = set()
+    secondary_set = set()
     monthly_category_spend = defaultdict(lambda: defaultdict(float))
+    monthly_secondary_spend = defaultdict(lambda: defaultdict(float))
     
     for row in vouchers:
         transaction_type = row["transaction_type"]
@@ -71,9 +75,13 @@ def build_dashboard() -> dict:
         by_type[cat_name] += signed_amount
         by_primary_type[primary_cat] += signed_amount
         
-        # Per project category grouping
+        # Per project category grouping (Primary)
         by_project_categories[p_name][primary_cat] += signed_amount
         by_project_categories["ALL"][primary_cat] += signed_amount
+
+        # Per project category grouping (Secondary)
+        by_project_secondary[p_name][cat_name] += signed_amount
+        by_project_secondary["ALL"][cat_name] += signed_amount
         
         # Extract YYYY-MM
         v_date = row["voucher_date"]
@@ -81,7 +89,9 @@ def build_dashboard() -> dict:
             m_key = v_date[:7]
             months_set.add(m_key)
             categories_set.add(primary_cat)
+            secondary_set.add(cat_name)
             monthly_category_spend[m_key][primary_cat] += signed_amount
+            monthly_secondary_spend[m_key][cat_name] += signed_amount
             
     sorted_months = sorted(list(months_set))
     
@@ -101,6 +111,17 @@ def build_dashboard() -> dict:
         for m in sorted_months:
             cat_data.append(round(monthly_category_spend[m][cat], 2))
         monthly_datasets.append({
+            "category": cat,
+            "data": cat_data
+        })
+
+    active_secondary = sorted(list(secondary_set), key=lambda c: by_type[c], reverse=True)
+    monthly_secondary_datasets = []
+    for cat in active_secondary:
+        cat_data = []
+        for m in sorted_months:
+            cat_data.append(round(monthly_secondary_spend[m][cat], 2))
+        monthly_secondary_datasets.append({
             "category": cat,
             "data": cat_data
         })
@@ -133,6 +154,14 @@ def build_dashboard() -> dict:
             if v > 0
         ]
 
+    project_sec_dict = {}
+    for p_key, cat_map in by_project_secondary.items():
+        project_sec_dict[p_key] = [
+            {"name": k, "value": round(v, 2)}
+            for k, v in sorted(cat_map.items(), key=lambda x: x[1], reverse=True)
+            if v > 0
+        ]
+
     return {
         "month_spending": month_spending,
         "expense": expense,
@@ -148,11 +177,13 @@ def build_dashboard() -> dict:
         "by_type": sorted(by_type.items(), key=lambda item: item[1], reverse=True),
         "by_primary_type": sorted(by_primary_type.items(), key=lambda item: item[1], reverse=True),
         "by_project_categories": project_cat_dict,
+        "by_project_secondary": project_sec_dict,
         "projects_list": [p["name"] for p in projects],
         "monthly_trend": {
             "months": sorted_months,
             "recent_12_months": recent_12_months,
             "years": years_set,
-            "datasets": monthly_datasets
+            "datasets": monthly_datasets,
+            "secondary_datasets": monthly_secondary_datasets
         }
     }

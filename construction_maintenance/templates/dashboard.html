@@ -56,12 +56,18 @@
         <h2 class="panel-title">{{ icon('trend') }} 月度支出趋势</h2>
         <p class="panel-subtitle">按时间阶段切分显示项目净支出与科目分布</p>
       </div>
-      <div class="year-filter-tabs" style="display: flex; gap: 6px;">
-        <button type="button" class="btn btn-primary btn-sm year-tab-btn" data-year="recent_12" onclick="switchYearFilter('recent_12', this)">近12个月</button>
-        {% for yr in metrics.monthly_trend.years %}
-        <button type="button" class="btn btn-secondary btn-sm year-tab-btn" data-year="{{ yr }}" onclick="switchYearFilter('{{ yr }}', this)">{{ yr }}年</button>
-        {% endfor %}
-        <button type="button" class="btn btn-secondary btn-sm year-tab-btn" data-year="all" onclick="switchYearFilter('all', this)">全部历史</button>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+        <div class="granularity-tabs" style="display: flex; gap: 4px;">
+          <button type="button" class="btn btn-primary btn-sm trend-mode-btn" data-mode="primary" onclick="switchTrendMode('primary', this)">一级大类</button>
+          <button type="button" class="btn btn-secondary btn-sm trend-mode-btn" data-mode="secondary" onclick="switchTrendMode('secondary', this)">二级细项</button>
+        </div>
+        <div class="year-filter-tabs" style="display: flex; gap: 4px;">
+          <button type="button" class="btn btn-primary btn-sm year-tab-btn" data-year="recent_12" onclick="switchYearFilter('recent_12', this)">近12个月</button>
+          {% for yr in metrics.monthly_trend.years %}
+          <button type="button" class="btn btn-secondary btn-sm year-tab-btn" data-year="{{ yr }}" onclick="switchYearFilter('{{ yr }}', this)">{{ yr }}年</button>
+          {% endfor %}
+          <button type="button" class="btn btn-secondary btn-sm year-tab-btn" data-year="all" onclick="switchYearFilter('all', this)">全部历史</button>
+        </div>
       </div>
     </div>
     <div class="chart-container" style="position: relative; height: 320px;">
@@ -83,8 +89,13 @@
         <h2 class="panel-title">{{ icon('checklist') }} 支出分类占比 (饼图)</h2>
         <p class="panel-subtitle">可选择单项目或全盘对比各类支出比例</p>
       </div>
-      <div>
-        <select id="pieProjectSelect" class="form-select" style="min-width: 160px; padding: 4px 8px; font-size: 13px;" onchange="updatePieChart(this.value)">
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+        <div class="pie-granularity-tabs" style="display: flex; gap: 4px;">
+          <button type="button" class="btn btn-primary btn-sm pie-mode-btn" data-mode="primary" onclick="switchPieMode('primary', this)">一级大类</button>
+          <button type="button" class="btn btn-secondary btn-sm pie-mode-btn" data-mode="top5" onclick="switchPieMode('top5', this)">前5名+其他</button>
+          <button type="button" class="btn btn-secondary btn-sm pie-mode-btn" data-mode="all" onclick="switchPieMode('all', this)">全部细项</button>
+        </div>
+        <select id="pieProjectSelect" class="form-select" style="min-width: 130px; padding: 4px 8px; font-size: 13px;" onchange="updatePieChart()">
           <option value="ALL">全部项目汇总</option>
           {% for p_name in metrics.projects_list %}
           <option value="{{ p_name }}">{{ p_name }}</option>
@@ -94,6 +105,10 @@
     </div>
     <div class="chart-container" style="position: relative; height: 320px; display: flex; align-items: center; justify-content: center;">
       <canvas id="categoryPieChart"></canvas>
+      <div id="pieCenterBadge" style="position: absolute; pointer-events: none; text-align: center; font-family: 'Inter', sans-serif; left: 24%; transform: translateX(-50%);">
+        <div id="pieCenterAmount" style="font-size: 15px; font-weight: 700; color: var(--text);">¥0</div>
+        <div id="pieCenterLabel" style="font-size: 11px; color: var(--text-tertiary); margin-top: 2px;">累计净支出</div>
+      </div>
     </div>
   </div>
 </div>
@@ -135,12 +150,16 @@
 const allMonths = {{ metrics.monthly_trend.months | tojson }};
 const recent12Months = {{ metrics.monthly_trend.recent_12_months | tojson }};
 const rawDatasets = {{ metrics.monthly_trend.datasets | tojson }};
+const rawSecondaryDatasets = {{ metrics.monthly_trend.secondary_datasets | tojson }};
 const projectCategoriesData = {{ metrics.by_project_categories | tojson }};
+const projectSecondaryData = {{ metrics.by_project_secondary | tojson }};
 
 let chartMonthly = null;
 let chartProject = null;
 let chartPie = null;
 let currentYearFilter = 'recent_12';
+let currentTrendMode = 'primary';
+let currentPieMode = 'primary';
 
 function getThemeColors() {
   const isDark = document.documentElement.classList.contains('dark-theme');
@@ -155,6 +174,28 @@ const colorPalette = [
   "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899",
   "#0ea5e9", "#f43f5e", "#14b8a6", "#a855f7", "#84cc16", "#06b6d4"
 ];
+
+function switchTrendMode(mode, btn) {
+  currentTrendMode = mode;
+  document.querySelectorAll('.trend-mode-btn').forEach(b => {
+    b.classList.remove('btn-primary');
+    b.classList.add('btn-secondary');
+  });
+  btn.classList.remove('btn-secondary');
+  btn.classList.add('btn-primary');
+  initMonthlyTrendChart();
+}
+
+function switchPieMode(mode, btn) {
+  currentPieMode = mode;
+  document.querySelectorAll('.pie-mode-btn').forEach(b => {
+    b.classList.remove('btn-primary');
+    b.classList.add('btn-secondary');
+  });
+  btn.classList.remove('btn-secondary');
+  btn.classList.add('btn-primary');
+  updatePieChart();
+}
 
 function initMonthlyTrendChart() {
   const ctx = document.getElementById('monthlySpendingTrendChart')?.getContext('2d');
@@ -174,8 +215,30 @@ function initMonthlyTrendChart() {
 
   // Filter dataset arrays accordingly
   const monthIndices = targetMonths.map(m => allMonths.indexOf(m));
+  let sourceDatasets = currentTrendMode === 'secondary' ? rawSecondaryDatasets : rawDatasets;
+
+  // In secondary mode, aggregate small items outside top 6 so legend remains crisp & clean
+  if (currentTrendMode === 'secondary' && sourceDatasets.length > 6) {
+    const totalByCat = sourceDatasets.map(ds => ({
+      ds: ds,
+      total: ds.data.reduce((a, b) => a + b, 0)
+    })).sort((a, b) => b.total - a.total);
+
+    const top5 = totalByCat.slice(0, 5).map(x => x.ds);
+    const rest = totalByCat.slice(5).map(x => x.ds);
+    
+    if (rest.length > 0) {
+      const otherData = monthIndices.map(mIdx => {
+        return rest.reduce((sum, ds) => sum + (ds.data[mIdx] || 0), 0);
+      });
+      sourceDatasets = [...top5, {
+        category: `其他 (${rest.length}项次级分类)`,
+        data: monthIndices.map((_, idx) => otherData[idx])
+      }];
+    }
+  }
   
-  const filteredDatasets = rawDatasets.map((ds, idx) => ({
+  const filteredDatasets = sourceDatasets.map((ds, idx) => ({
     label: ds.category,
     data: monthIndices.map(i => ds.data[i] || 0),
     backgroundColor: colorPalette[idx % colorPalette.length],
@@ -247,15 +310,55 @@ function switchYearFilter(year, btn) {
   initMonthlyTrendChart();
 }
 
-function initCategoryPieChart(projectKey) {
+function processCategoryItems(rawItems, mode) {
+  if (!rawItems || !rawItems.length) return [];
+  const sorted = [...rawItems].sort((a, b) => b.value - a.value);
+  
+  if (mode === 'all' || sorted.length <= 6) {
+    return sorted;
+  }
+  if (mode === 'primary') {
+    if (sorted.length <= 7) return sorted;
+    const top6 = sorted.slice(0, 6);
+    const rest = sorted.slice(6);
+    const restSum = rest.reduce((a, b) => a + b.value, 0);
+    top6.push({ name: `其他大类 (${rest.length}项)`, value: Math.round(restSum * 100) / 100 });
+    return top6;
+  }
+  // mode === 'top5'
+  const top5 = sorted.slice(0, 5);
+  const rest = sorted.slice(5);
+  const restSum = rest.reduce((a, b) => a + b.value, 0);
+  if (restSum > 0) {
+    top5.push({ name: `其他 (${rest.length}项细项)`, value: Math.round(restSum * 100) / 100 });
+  }
+  return top5;
+}
+
+function initCategoryPieChart() {
   const ctx = document.getElementById('categoryPieChart')?.getContext('2d');
   if (!ctx) return;
 
+  const projectKey = document.getElementById('pieProjectSelect')?.value || 'ALL';
   const themeColors = getThemeColors();
-  const catItems = projectCategoriesData[projectKey] || projectCategoriesData['ALL'] || [];
+  
+  const rawItems = currentPieMode === 'primary'
+    ? (projectCategoriesData[projectKey] || projectCategoriesData['ALL'] || [])
+    : (projectSecondaryData[projectKey] || projectSecondaryData['ALL'] || []);
+
+  const catItems = processCategoryItems(rawItems, currentPieMode);
   
   const labels = catItems.map(i => i.name);
   const values = catItems.map(i => i.value);
+  const totalVal = values.reduce((a, b) => a + b, 0);
+
+  // Update center overlay badge
+  const centerAmt = document.getElementById('pieCenterAmount');
+  const centerLbl = document.getElementById('pieCenterLabel');
+  if (centerAmt && centerLbl) {
+    centerAmt.textContent = totalVal >= 10000 ? (totalVal / 10000).toFixed(1) + '万' : '¥' + Math.round(totalVal).toLocaleString('zh-CN');
+    centerLbl.textContent = `${currentPieMode === 'primary' ? '大类' : '细项'}汇总 (${catItems.length}项)`;
+  }
 
   if (chartPie) {
     chartPie.destroy();
@@ -292,7 +395,7 @@ function initCategoryPieChart(projectKey) {
                 return data.labels.map((label, i) => {
                   const val = dataset.data[i] || 0;
                   const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0.0';
-                  let amtFormatted = val >= 10000 ? (val / 10000).toFixed(1) + '万' : '¥' + val.toLocaleString('zh-CN');
+                  let amtFormatted = val >= 10000 ? (val / 10000).toFixed(1) + '万' : '¥' + Math.round(val).toLocaleString('zh-CN');
                   return {
                     text: `${label}  ${pct}% (${amtFormatted})`,
                     fillStyle: dataset.backgroundColor[i % dataset.backgroundColor.length],
@@ -318,13 +421,13 @@ function initCategoryPieChart(projectKey) {
           }
         }
       },
-      cutout: '58%'
+      cutout: '62%'
     }
   });
 }
 
-function updatePieChart(projectKey) {
-  initCategoryPieChart(projectKey);
+function updatePieChart() {
+  initCategoryPieChart();
 }
 
 function initProjectSpendingChart() {
