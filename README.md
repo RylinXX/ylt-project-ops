@@ -1,253 +1,58 @@
-# 营力特数字化系统 (YLT Digital)
-![Version](https://img.shields.io/badge/version-v0.2.33-blue?style=flat-square)
-[![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://www.sqlite.org/)
-[![TDD](https://img.shields.io/badge/TDD-pytest-FF5722?style=flat-square&logo=pytest&logoColor=white)](https://docs.pytest.org/)
-[![UI Theme](https://img.shields.io/badge/UI-Premium_Emerald-0f766e?style=flat-square)](https://github.com)
+# 营力特 · 工程运营管理平台
+**YLT ProjectOps** · 项目台账、费用凭证、人员档案与企业资料管理。
 
-营力特数字化系统是面向建筑工程公司的轻量级运营平台，集中管理项目台账、费用凭证、人员档案、合同与企业资质。系统基于 **Python Flask + SQLite + Jinja2 + openpyxl** 构建。
-![Dashboard Mockup](file:///Users/rylinx/.gemini/antigravity/brain/9ed160a7-f213-499f-baef-6719cabe23f2/ui_dashboard_mockup_1785143245744.jpg)
----
+面向建筑工程公司的日常运营，将项目、费用、合同、人员和企业资质集中管理。它不是设备维修工具，也不同于独立的运输对账系统。
 
-## 🎨 视觉与交互美学 (UI Design Aesthetics)
+[线上平台](https://pam.etgq.com/) · [部署目录](deploy/)
 
-本系统突破了传统企业级后台系统的枯燥和单调，遵循现代 UI/UX 设计法则：
-* **深邃翠绿主色调**：以深邃翠绿（Emerald HSL 色系）为主导，结合精致的暗色侧边栏（Sidebar）与轻盈的淡卡其/灰底色，塑造极高专业感。
-* **状态标记 (Badges)**：使用明晰、柔和的 HSL 颜色标识项目与资料状态（如“进行中”、“已完工”、“已暂停”、“待确认”），视觉边界清晰。
-* **微光过渡与动效**：按钮悬停（Hover）、导航切换及卡片组件拥有平滑的 CSS 缓动动画，让系统界面充满灵动活力。
-* **流式自适应布局**：采用 CSS Grid / Flexbox 混合布局，无缝适配不同尺寸的电脑与平板终端。
-* **精细化 UI 细节**：全局按钮卡片化、过滤表单圆角化、表格列省略显示并悬停提示，实现单屏可视化，提升操作舒适度。
-* **响应式单屏布局**：针对笔记本电脑视口优化，表格宽度固定、列宽匹配，避免水平滚动，确保关键信息一次呈现。
+## 核心业务
 
+| 业务 | 内容 |
+| --- | --- |
+| 项目与看板 | 项目台账、经营汇总、费用分类与状态查询 |
+| 费用凭证 | 凭证录入、附件保存、分类、审核与导出 |
+| 人员管理 | 人员档案及相关资料维护 |
+| 合同与资质 | 合同、企业证照和有效期相关管理 |
+| 文件处理 | Excel 导入导出，可选模型辅助 OCR，人工复核 |
 
----
+OCR 结果不能替代原始凭证；金额、人员和合同信息应经过业务人员确认。
 
-## 📊 核心业务功能模块 (Core Modules)
+## 技术与目录
 
-系统涵盖了建筑工程日常运营与资料合规管理的核心闭环：
-
-```mermaid
-graph TD
-    A[数据看板 Dashboard] --> B[项目台账 Projects]
-    A --> C[凭证录入 Vouchers]
-    A --> D[人员花名册 Personnel]
-    A --> E[企业资质 Qualifications]
-    
-    F[批量导入 Batch Import] -. 预留OCR接口 .-> C
-    F -.-> D
-    
-    G[导出中心 Export Center] --> B
-    G --> D
-    G --> E
-```
-
-### 1. 📊 智能数据看板 (Dashboard)
-* **动态指标卡片**：自动实时统计并呈现 **本月项目支出**、**累计项目支出**、**月度凭证数量**、**待确认资料队列**及**临期资质证书**等核心经营指标。
-* **多维深度排行**：直观展示“项目支出排行榜”与“费用科目构成分析”，帮助管理层秒级洞察资金流向。
-
-### 2. 📁 规范项目台账 (Projects Ledger)
-* **全生命周期管理**：支持录入工程项目全要素（项目名称、项目负责人、开工日期、状态、备注）。
-* **动态状态追踪**：以高对比度、呼吸感十足的 Badge 展现项目的进行、完工或暂停状态。
-
-### 3. ✍️ 精确凭证录入 (Vouchers Record)
-* **明细流水记账**：详细记录每一笔项目支出的日期、科目类别、金额、录入人、备注。
-* **防错校验机制**：内置金额自动格式化、负数及非数字输入强校验，确保入库财务数据 100% 准确。
-
-### 4. 👥 施工人员花名册 (Personnel Directory)
-* **详尽人员档案**：记录一线施工人员的姓名、身份证号、性别、年龄、工种、电话、银行卡号及完整开户行信息。
-* **Excel 一键导入**：支持解析规范的 Excel 花名册模板，支持大批量人员信息毫秒级自动解析与导入。
-
-### 5. 🛡️ 企业资质合规性 (Qualifications Control)
-* **防漏风控机制**：登记合作单位证书，记录编号、发证机关、到期时间（支持设定“长期有效”）。
-* **主动临期预警**：临期证书自动在看板以醒目警示色提示，防范因资质过期导致的合规风险。
-
-### 6. 📥 批量录入队列 (Batch Import)
-* **拖拽式极简上传**：提供拖拽上传发票、身份证扫描件等附件文件的交互区域。
-* **待确认任务队列**：引入临时任务缓冲队列，完美承接并预留未来的 AI / OCR 解析接入能力。
-
-### 7. 📤 一键导出中心 (Export Center)
-* **专业报表输出**：基于 `openpyxl` 引擎，支持一键导出排版精美、格式规范的“项目台账 Excel”、“人员花名册 Excel”和“企业资质 Excel”。
-
----
-
-## 🛠️ 项目技术架构 (Architecture Overview)
-
-项目严格遵循清晰的**三层架构与依赖注入（Repository / Service Pattern）**设计模式，极大地提高了代码的可维护性与单元测试可读性：
-
-* **Web/Presentation Layer**：基于 Flask Blueprint 路由与 Jinja2 精美模版，配合安全健壮的 `forms.py` 进行表单清洗。
-* **Service Layer**：包含 `dashboard.py`（指标聚合业务）、`exports.py`（基于 openpyxl 的高级 Excel 格式化）和 `imports.py`（Excel 导入解析）。
-* **Data Access Layer (Repository)**：在 `repositories.py` 中抽象了对 SQLite 数据库的原子化增删改查逻辑，与 Flask 上下文松耦合。
-* **Infrastructure**：`db.py` 负责连接管理、Foreign Key 约束、WAL 并发模式与数据库初始化；演示数据仅在显式开启时生成。
-
----
-
-## 📂 项目目录结构 (Directory Tree)
+Python 3.11+、Flask、SQLite、Jinja2、openpyxl，支持 Docker Compose 部署。
 
 ```text
-CAM/
-│
-├── construction_maintenance/         # 系统主包目录
-│   ├── __init__.py                   # 导出应用工厂函数
-│   ├── app.py                        # 核心应用工厂 (App Factory)
-│   ├── config.py                     # 全局路径及环境变量配置
-│   ├── db.py                         # SQLite 数据库底层管理与表结构初始化
-│   ├── repositories.py               # 数据持久化仓储层 (Repository Pattern)
-│   │
-│   ├── services/                     # 核心业务服务层
-│   │   ├── __init__.py
-│   │   ├── dashboard.py              # 看板数据统计与聚合计算
-│   │   ├── exports.py                # 优雅的 openpyxl Excel 导出实现
-│   │   └── imports.py                # 批量文件处理与花名册 Excel 解析导入
-│   │
-│   ├── static/                       # 静态资源
-│   │   └── app.css                   # 精美的 "Premium Emerald Theme" CSS 样式表
-│   │
-│   ├── templates/                    # Jinja2 模版系统 (以模块划分子页面)
-│   │   ├── base.html                 # 全局基础模版（含美观侧边栏）
-│   │   ├── dashboard.html            # 看板页
-│   │   ├── projects.html             # 项目台账页
-│   │   ├── vouchers.html             # 凭证录入页
-│   │   ├── personnel.html            # 人员花名册页
-│   │   ├── qualifications.html       # 资质证书页
-│   │   └── batch.html                # 批量录入拖拽页
-│   │
-│   └── web/                          # 路由控制器与表单处理器
-│       ├── __init__.py
-│       ├── forms.py                  # 健壮的表单输入清洗与强校验组件
-│       └── routes.py                 # Blueprint 视图路由逻辑
-│
-├── tests/                            # 自动化测试套件
-│   ├── conftest.py                   # Pytest 全局组件配置（在 tmp_path 下隔离测试数据库）
-│   ├── test_db.py                    # 数据库结构与种子数据测试
-│   ├── test_repositories.py          # 仓储读取层逻辑测试
-│   ├── test_dashboard.py             # 看板聚合计算指标测试
-│   ├── test_exports.py               # openpyxl 导出正确性测试
-│   └── test_routes.py                # 全面路由可用性与表单提交流程测试
-│
-├── pyproject.toml                    # 现代化 Python 包元数据及依赖管理
-├── README.md                         # 本文档
-└── .gitignore                        # Git 提交忽略规则
+construction_maintenance/  应用、页面、静态资源与业务逻辑
+contract_templates/       合同模板
+tests/                    自动化测试
+deploy/                   反向代理等配置
+scripts/                  导入和辅助脚本
+pyproject.toml            依赖及测试配置
 ```
 
----
+## 本地开发
 
-## 🚀 快速开始与本地部署 (Quick Start)
+在隔离环境中运行，不要使用线上数据库作为测试数据。
 
-以下为 Windows PowerShell / Linux 终端下的标准部署流程。认证默认开启，首次启动前必须配置会话密钥和管理员引导凭据。
-
-### 1. 克隆/拉取项目并创建虚拟环境
-```powershell
-# 打开工程根目录
-cd CAM
-
-# 创建专属虚拟环境 (Python 3.12+)
-python -m venv .venv
-
-# 激活虚拟环境
-# [Windows PowerShell]
-.\.venv\Scripts\Activate.ps1
-# [Linux / macOS]
+```sh
+python3 -m venv .venv
 source .venv/bin/activate
+pip install -e '.[dev]'
 ```
 
-### 2. 安装项目依赖与开发工具
-```powershell
-# 以可编辑开发模式安装项目及 pytest 测试包
-pip install -e ".[dev]"
-```
+启动前配置 `CAM_SECRET_KEY`、`CAM_ADMIN_USERNAME` 和 `CAM_ADMIN_PASSWORD_HASH`。管理员密码使用 Werkzeug 哈希，不是明文。仅本地 HTTP 调试可将 `CAM_SESSION_COOKIE_SECURE` 设为 `0`。
 
-### 3. 配置运行环境
-
-| 环境变量 | 必需 | 说明 |
-|---|---|---|
-| `CAM_SECRET_KEY` | 是 | Flask 会话签名密钥，应使用高强度随机值 |
-| `CAM_ADMIN_USERNAME` | 首次启动 | 首个超级管理员登录名，也用于无可用超级管理员时的启动恢复 |
-| `CAM_ADMIN_PASSWORD_HASH` | 首次启动 | 引导管理员的 Werkzeug 密码哈希，不能填写明文密码 |
-| `CAM_AUTH_REQUIRED` | 否 | 是否启用登录认证，默认 `1` |
-| `CAM_CSRF_ENABLED` | 否 | 是否启用 CSRF 防护，默认 `1` |
-| `CAM_SESSION_COOKIE_SECURE` | 否 | 是否仅通过 HTTPS 发送会话 Cookie，默认 `1`；仅本地 HTTP 调试时设为 `0` |
-| `CAM_SEED_DEMO_DATA` | 否 | 是否初始化演示业务数据，默认 `0`；生产环境禁止开启 |
-| `CAM_MAX_UPLOAD_BYTES` | 否 | 单次请求最大上传字节数，默认 `20971520`（20MB） |
-| `ARK_API_KEY` | OCR 必需 | 火山方舟 API 密钥；未配置时文件保留为待人工确认 |
-| `ARK_BASE_URL` | 否 | 火山方舟 API 地址 |
-| `ARK_MODEL` | 否 | OCR 使用的模型名称 |
-
-生成随机会话密钥和管理员密码哈希：
-
-```powershell
-python -c "import secrets; print(secrets.token_urlsafe(48))"
-python -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('replace-this-password'))"
-```
-
-将输出分别配置为 `CAM_SECRET_KEY` 和 `CAM_ADMIN_PASSWORD_HASH`，并设置 `CAM_ADMIN_USERNAME`。首次启动会将引导账号写入管理员账号表并授予超级管理员权限；此后可在“系统设置”中新增、停用和调整管理员账号。生产环境应通过 systemd `EnvironmentFile`、容器 Secret 或等效的密钥管理方式注入，禁止提交到 Git。
-
-生产部署还应只启用 TLS 1.2/1.3，并让反向代理的上传上限与 `CAM_MAX_UPLOAD_BYTES` 保持一致。参考配置见 `deploy/nginx-pam.conf.example`。
-
-### 4. 运行开发服务器
-```powershell
-# 启动 Flask 系统并激活热重载 (Hot Reload) 调试模式
-flask --app construction_maintenance run --debug
-```
-服务启动后，在浏览器中打开 **[http://127.0.0.1:5000](http://127.0.0.1:5000)** 即可进入营力特数字化系统。
-
----
-
-## 🐳 Docker 生产化部署 (Docker & Docker Compose)
-
-系统提供完整的 Docker 化生产部署方案（多阶段构建 + Gunicorn 高并发 + Nginx 反向代理 + 数据持久化 Volume）。
-
-### 一键容器化部署步骤
-
-```bash
-# 1. 复制环境变量配置文件
-cp .env.example .env
-
-# 2. 修改 .env 中的密钥与管理员初始密码哈希
-# 生成密钥: python3 -c "import secrets; print(secrets.token_urlsafe(48))"
-# 生成哈希: python3 -c "from werkzeug.security import generate_password_hash; print(generate_password_hash('MyPassword123'))"
-vim .env
-
-# 3. 启动容器集群 (后台运行)
-docker compose up -d --build
-
-# 4. 查看运行状态与健康检查
-docker compose ps
-docker compose logs -f app
-```
-
-### Docker 部署特性
-
-* **多阶段精简镜像**：采用 Python 3.12-slim 双阶段构建，去除构建依赖，减少镜像体积。
-* **安全非 Root 运行**：容器内以 `appuser` (UID 1001) 运行，提升容器隔离安全性。
-* **Gunicorn 生产级 WSGI**：使用 Gunicorn (4 Workers + Preload + Auto-restart) 替代 Flask 开发服务器。
-* **健康检查 Healthcheck**：配置内置 `/health` 端点自动探测容器存活。
-* **数据持久化 Volume**：数据库、上传文件和导出 Excel 存储在 `ylt_pam_data` 命名卷中，重启镜像数据零丢失。
-
----
-
-## 🧪 自动化测试驱动开发 (TDD Verification)
-
-本系统的自动化测试覆盖表结构、仓储读写、Excel 导入导出、OCR 载荷、认证与 CSRF，以及 Web 完整交互链路。
-
-如需运行所有自动化测试用例，只需在工程根目录下执行：
-```powershell
+```sh
+flask --app construction_maintenance run --host 127.0.0.1 --port 5000
 pytest
 ```
 
-测试执行时会自动为每个测试用例分配隔离在内存/临时文件中的沙盒 SQLite 数据库，绝不污染本地实际运行的数据。
+认证和 CSRF 防护在生产环境应保持开启。不要在生产环境启用 `CAM_SEED_DEMO_DATA` 或执行演示数据脚本。
 
----
+## 生产部署
 
-## 🛡️ 开源声明与商业许可
-## 📦 最新版本更新 (Release Notes)
+域名 `pam.etgq.com` 经 Nginx 转发到容器服务。现有 Compose 使用 `ylt_pam_data` 保存数据库、上传与导出文件。不要删除这个数据卷，也不要因仓库改名更改卷名、容器名或数据库路径。
 
-- **UI美化**：全局按钮卡片化、过滤表单圆角化、表格列省略显示并悬停提示，实现单屏可视化，提升操作舒适度。
-- **响应式布局**：针对笔记本电脑视口优化，表格宽度固定、列宽匹配，避免水平滚动，所有关键信息一次呈现。
-- **圆角过滤卡**：所有筛选表单封装为四角圆润卡片，提升视觉统一性。
-- **表格列对齐**：操作列宽度统一，防止按钮与内容重叠。
-- **部署同步**：已将最新代码推送至 GitHub `master` 分支，并在生产服务器上部署，保持与远端一致。
-- **测试覆盖**：全部 168 项单元/集成测试通过，确保功能可靠。
+生产密钥通过部署环境注入；OCR 的 `ARK_API_KEY` 等可选配置不能进入 Git。发布前备份数据卷、配置和当前镜像，检查健康状态、登录、凭证查询和导出流程。
 
-
-本项目基于标准规范开发，保留完整的主体工程设计。严禁在未经授权的情况下将本项目直接用于恶意或未声明合规性的生产坏境中。
+仓库是代码版本，不包含最新业务数据。根目录历史 `Carsystem` 引用不属于本平台的运行依赖，运输运营平台单独维护。
